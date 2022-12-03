@@ -1,6 +1,6 @@
 import type { ActionFunction, LinksFunction } from "@remix-run/node";
-import { Link, useSearchParams, useActionData } from "@remix-run/react";
-import { login } from "~/utils/session.server";
+import { Link, useSearchParams, Form } from "@remix-run/react";
+import { login, createUserSession } from "~/utils/session.server";
 import stylesUrl from "../styles/login.css";
 import { json, redirect } from "@remix-run/node";
 
@@ -13,19 +13,18 @@ export const action: ActionFunction = async ({ request }) => {
   const username = form.get("username") as string;
   const password = form.get("password") as string;
   let logged_user = await login({ username, password });
-  if (logged_user) return redirect("/admin");
+  if (logged_user) return createUserSession(logged_user, "/admin");
 
   return redirect("/");
 };
 
 export default function Login() {
-  const logged_user = useActionData();
   const [searchParams] = useSearchParams();
   return (
     <div className='container'>
       <div className='content' data-light=''>
         <h1>Login</h1>
-        <form method='post'>
+        <Form method='post'>
           <input
             type='hidden'
             name='redirectTo'
@@ -43,10 +42,7 @@ export default function Login() {
           <button type='submit' className='button'>
             Submit
           </button>
-        </form>
-        <div>
-          {logged_user?.username ? <div>{logged_user.username}</div> : null}
-        </div>
+        </Form>
       </div>
       <div className='links'>
         <ul>
