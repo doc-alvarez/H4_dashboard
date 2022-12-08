@@ -44,20 +44,6 @@ export default function App() {
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
-        <p
-          style={{
-            fontSize: "20px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: "50px",
-            paddingTop: "50px",
-          }}
-        >
-          <a href='mailto:doctordalvarez@protonmail.com'>
-            Developed by Catalyst ™️ 🚀 v0.1.0
-          </a>
-        </p>
       </body>
     </html>
   );

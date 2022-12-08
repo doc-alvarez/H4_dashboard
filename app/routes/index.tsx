@@ -6,7 +6,7 @@ export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: stylesUrl }];
 };
 export const loader: LoaderFunction = async ({ request }) => {
-  return redirect("/admin/all");
+  return redirect("/admin/all-stores");
 };
 
 export default function IndexRoute() {

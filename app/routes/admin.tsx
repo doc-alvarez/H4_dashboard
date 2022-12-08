@@ -45,7 +45,7 @@ export default function AdminRoute() {
             <h3>
               <NavLink
                 style={({ isActive }) => (isActive ? { color: "#959fbb" } : {})}
-                to='siria'
+                to='subway-siria'
               >
                 Subway Siria
               </NavLink>
@@ -53,15 +53,15 @@ export default function AdminRoute() {
             <h3>
               <NavLink
                 style={({ isActive }) => (isActive ? { color: "#959fbb" } : {})}
-                to='botanico'
+                to='daniel-siria'
               >
-                Daniel Botanico
+                Daniel Siria
               </NavLink>
             </h3>
             <h3>
               <NavLink
                 style={({ isActive }) => (isActive ? { color: "#959fbb" } : {})}
-                to='lacroze'
+                to='subway-lacroze'
               >
                 Subway Lacroze
               </NavLink>
@@ -69,17 +69,17 @@ export default function AdminRoute() {
             <h3>
               <NavLink
                 style={({ isActive }) => (isActive ? { color: "#959fbb" } : {})}
-                to='mireya'
+                to='daniel-lacroze'
               >
-                Daniel Mireya
+                Daniel Lacroze
               </NavLink>
             </h3>
             <h3>
               <NavLink
                 style={({ isActive }) => (isActive ? { color: "#959fbb" } : {})}
-                to='all'
+                to='all-stores'
               >
-                All
+                All Stores
               </NavLink>
             </h3>
           </div>
@@ -88,6 +88,21 @@ export default function AdminRoute() {
           </div>
         </div>
       </main>
+      <p
+        style={{
+          fontSize: "20px",
+          fontWeight: 200,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: "50px",
+          paddingTop: "50px",
+        }}
+      >
+        <a href='mailto:doctordalvarez@protonmail.com'>
+          Developed by <strong>Catalyst ™️</strong> 🚀 v0.1.0
+        </a>
+      </p>
     </div>
   );
 }

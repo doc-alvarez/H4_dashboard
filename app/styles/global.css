@@ -44,6 +44,7 @@ body {
   margin: 0;
   color: var(--color-foreground);
   background-color: var(--color-background);
+  font-weight: 300;
 }
 
 [data-light] {
@@ -197,8 +198,16 @@ form {
   margin-top: 20px;
   max-width: 90%;
 }
+form[method="get"] {
+  display: block;
+}
 form#login {
   flex-direction: column;
+}
+form #container_form {
+  display: flex;
+  margin-top: 20px;
+  max-width: 90%;
 }
 
 fieldset {
@@ -376,6 +385,7 @@ input[name="to"] {
   border-radius: 10px;
   height: fit-content;
   max-width: 280px;
+  margin-right: 10px;
 }
 
 #submit_date:hover {

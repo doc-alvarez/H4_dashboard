@@ -19,7 +19,7 @@ export const action: ActionFunction = async ({ request }) => {
   const username = form.get("username") as string;
   const password = form.get("password") as string;
   let logged_user = await login({ username, password });
-  if (logged_user) return createUserSession(logged_user, "/admin/all");
+  if (logged_user) return createUserSession(logged_user, "/admin/all-stores");
   return json("⛔ Authentication Failed ⛔ ", {
     status: 401,
   });

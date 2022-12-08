@@ -1,10 +1,10 @@
-import { json } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import type { LoaderFunction } from "@remix-run/node";
 import {
   apiLogin,
   getAPIData,
-  middleWareBotanico,
-  middleWareMireya,
+  middleWareDanielLacroze,
+  middleWareDanielSiria,
 } from "~/utils/session.server";
 import SalesPlace from "~/components/SalesPlace";
 import {
@@ -27,56 +27,57 @@ interface Locale_Data {
 }
 
 export const loader: LoaderFunction = async ({ params, request }) => {
-  let date = new Date();
+  console.log("Server Loader called");
   const url = new URL(request.url);
-  const from =
-    url.searchParams.get("from") ||
-    `${date.getFullYear()}-${date.getMonth() + 1}-${date
-      .getDate()
-      .toString()
-      .padStart(2, "0")}`;
-  const to =
-    url.searchParams.get("to") ||
-    `${date.getFullYear()}-${date.getMonth() + 1}-${date
-      .getDate()
-      .toString()
-      .padStart(2, "0")}`;
+  const from = url.searchParams.get("from") || new Date().toLocaleDateString();
+  const to = url.searchParams.get("to") || new Date().toLocaleDateString();
+  console.log(from, to);
   let historic = url.searchParams.get("historic");
-  let paging = historic ? 12 : 2;
-  console.log(historic, paging);
+  let paging = Math.ceil(Number(historic) / 500) || 2;
+  console.log(paging);
   let data;
   let siria_token;
   let lac_token;
 
   switch (params.local) {
     //***************************************** */
-    //MIREYA
+    //DANIEL-LACROZE
     //***************************************** */
-    case "mireya":
-      let mireyaresult = await middleWareMireya(from, to, params, paging);
-      console.log("MIREYA");
-      return json(mireyaresult, {
+    case "daniel-lacroze":
+      let danielLacrozeResult = await middleWareDanielLacroze(
+        from,
+        to,
+        params,
+        paging
+      );
+      console.log("DANIEL-LACROZE");
+      return json(danielLacrozeResult, {
         headers: {
           "cache-Control": "max-age=600, must-revalidate",
-          eTag: md5(JSON.stringify(mireyaresult)),
+          eTag: md5(JSON.stringify(danielLacrozeResult)),
         },
       });
     //***************************************** */
-    //BOTANICO
+    //DANIEL-SIRIA
     //***************************************** */
-    case "botanico":
-      let botanicoresult = await middleWareBotanico(from, to, params, paging);
-      console.log("BOTANICO");
-      return json(botanicoresult, {
+    case "daniel-siria":
+      let danielSiriaResult = await middleWareDanielSiria(
+        from,
+        to,
+        params,
+        paging
+      );
+      console.log("DANIEL-SIRIA", danielSiriaResult);
+      return json(danielSiriaResult, {
         headers: {
           "cache-Control": "max-age=600, must-revalidate",
-          eTag: md5(JSON.stringify(botanicoresult)),
+          eTag: md5(JSON.stringify(danielSiriaResult)),
         },
       });
     //***************************************** */
-    //SIRIA
+    //SUBWAY-SIRIA
     //***************************************** */
-    case "siria":
+    case "subway-siria":
       siria_token = await apiLogin(
         process.env.SIRIA_EMAIL as string,
         process.env.SIRIA_PASS as string
@@ -87,7 +88,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
         from,
         to,
       });
-      let siriaresult: Locale_Data = {
+      let subwaySiriaResult: Locale_Data = {
         from: from,
         to: to,
         localName: params.local as string,
@@ -106,17 +107,17 @@ export const loader: LoaderFunction = async ({ params, request }) => {
           })
           ?.reduce((acc: any, val: any) => (val ? acc + val : acc), 0),
       };
-      console.log("SIRIA");
-      return json(siriaresult, {
+      console.log("SUBWAY-SIRIA");
+      return json(subwaySiriaResult, {
         headers: {
           "cache-Control": "max-age=600, must-revalidate",
-          eTag: md5(JSON.stringify(siriaresult)),
+          eTag: md5(JSON.stringify(subwaySiriaResult)),
         },
       });
     //***************************************** */
-    //LACROZE
+    //SUBWAY-LACROZE
     //***************************************** */
-    case "lacroze":
+    case "subway-lacroze":
       lac_token = await apiLogin(
         process.env.LACROZE_EMAIL as string,
         process.env.LACROZE_PASS as string
@@ -127,7 +128,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
         from,
         to,
       });
-      let lacrozeresult: Locale_Data = {
+      let subwayLacrozeResult: Locale_Data = {
         from: from,
         to: to,
         localName: params.local as string,
@@ -147,16 +148,16 @@ export const loader: LoaderFunction = async ({ params, request }) => {
           ?.reduce((acc: any, val: any) => (val ? acc + val : acc), 0),
       };
       console.log("LACROZE");
-      return json(lacrozeresult, {
+      return json(subwayLacrozeResult, {
         headers: {
           "cache-Control": "max-age=600, must-revalidate",
-          eTag: md5(JSON.stringify(lacrozeresult)),
+          eTag: md5(JSON.stringify(subwayLacrozeResult)),
         },
       });
     //***************************************** */
     //ALL
     //***************************************** */
-    case "all":
+    case "all-stores":
       [lac_token, siria_token] = await Promise.all([
         apiLogin(
           process.env.LACROZE_EMAIL as string,
@@ -185,8 +186,8 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       ).flat();
       const data2 = (
         await Promise.all([
-          middleWareBotanico(from, to, params, paging),
-          middleWareMireya(from, to, params, paging),
+          middleWareDanielSiria(from, to, params, paging),
+          middleWareDanielLacroze(from, to, params, paging),
         ])
       ).flat();
       let result: Locale_Data = {
@@ -225,9 +226,8 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       });
 
     default:
-      data = [];
+      return redirect("/admin/all-stores");
   }
-  return json([]);
 };
 
 export default function LocalSpecific() {
@@ -236,7 +236,7 @@ export default function LocalSpecific() {
   const [dateTo, setToDate] = React.useState(data.to);
   let loc = useLocation();
   let transition = useTransition();
-
+  console.log(dateFrom, dateTo);
   React.useEffect(() => {
     if (!loc.search) {
       setFromDate(data.from);
@@ -248,51 +248,58 @@ export default function LocalSpecific() {
     <div>
       <hr></hr>
       <Form method='get'>
-        <label htmlFor='from'></label>
-        <input
-          value={dateFrom}
-          onChange={(event) => setFromDate(event?.currentTarget.value)}
-          name='from'
-          id='from'
-          type='date'
-        />
-        <label htmlFor='to'></label>
-        <input
-          value={dateTo}
-          onChange={(event) => setToDate(event.currentTarget.value)}
-          name='to'
-          id='to'
-          type='date'
-        />
-        <button
-          id='submit_date'
-          disabled={Boolean(transition.state !== "idle")}
-          style={{
-            padding: "12px",
-            minWidth: "80px",
-            borderRadius: "20px",
-            border: "none",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-          type='submit'
-        >
-          {transition.state !== "idle" ? (
-            <RingLoader size='22px' loading={true} />
-          ) : (
-            <span
-              style={{
-                fontSize: "32px",
-              }}
-            >
-              🧐
-            </span>
-          )}
-        </button>
-        <div style={{ marginTop: "20px" }}>
-          <label htmlFor='checkbox'>Historico:</label>
-          <input type='checkbox' id='checkbox' name='historic' />
+        <div id='container_form'>
+          <label htmlFor='from'></label>
+          <input
+            value={new Date(dateFrom).toISOString().slice(0, 10)}
+            onChange={(event) => setFromDate(event?.currentTarget.value)}
+            name='from'
+            id='from'
+            type='date'
+          />
+          <label htmlFor='to'></label>
+          <input
+            value={new Date(dateTo).toISOString().slice(0, 10)}
+            onChange={(event) => setToDate(event.currentTarget.value)}
+            name='to'
+            id='to'
+            type='date'
+          />
+          <button
+            id='submit_date'
+            disabled={Boolean(transition.state !== "idle")}
+            style={{
+              padding: "12px",
+              minWidth: "80px",
+              borderRadius: "20px",
+              border: "none",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            type='submit'
+          >
+            {transition.state !== "idle" ? (
+              <RingLoader size='22px' loading={true} />
+            ) : (
+              <span
+                style={{
+                  fontSize: "32px",
+                }}
+              >
+                🧐
+              </span>
+            )}
+          </button>
+        </div>
+        <div style={{ width: "150px", marginTop: "20px" }}>
+          <label htmlFor='records'></label>
+          <input
+            placeholder='Historic Orders...'
+            type='text'
+            id='records'
+            name='historic'
+          />
         </div>
       </Form>
       <SalesPlace

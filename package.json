@@ -16,6 +16,7 @@
     "@remix-run/serve": "^1.8.0",
     "axios": "^1.2.0",
     "bcryptjs": "^2.4.3",
+    "dotenv": "^16.0.3",
     "isbot": "^3.6.5",
     "md5": "^2.3.0",
     "node-libcurl": "^3.0.0",

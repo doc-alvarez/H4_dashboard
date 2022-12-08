@@ -64,7 +64,7 @@ export async function requireUserId(request: Request) {
 export async function createUserSession(userId: string, redirectTo: string) {
   const session = await storage.getSession();
   session.set("userId", userId);
-  return redirect("/admin/all", {
+  return redirect("/admin/all-stores", {
     headers: {
       "Set-Cookie": await storage.commitSession(session),
     },
@@ -87,27 +87,6 @@ export async function apiLogin(email: string, password: string) {
   });
   const { authentication_token } = await data.json();
   return authentication_token;
-}
-export async function getDanielData(token: string, paging: number) {
-  let page = 1;
-  let finalPaymentsData: any[] = [];
-  while (page <= paging) {
-    console.log(`Fetching page: ${page} of ${paging}`);
-    const data = await fetch(
-      `https://api.fu.do/v1alpha1/sales?page[size]=500&page[number]=${page}&sort=-createdAt&include=payments.paymentMethod`,
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    const _data = await data.json();
-    page += 1;
-    finalPaymentsData = [...finalPaymentsData, ..._data.included];
-  }
-  return finalPaymentsData;
 }
 
 export async function getAPIData({
@@ -164,59 +143,29 @@ export async function logout(request: Request) {
   });
 }
 
-export async function filterData(
-  finalData: any[],
-  from: string | number | Date,
-  to: string | number | Date,
-  filteredOrders: { [x: string]: { amount: any; count: number } }
-) {
-  finalData.forEach((order) => {
-    const amount = order.attributes?.amount || 0;
-    const createdAt = order.attributes?.createdAt || "";
-    const paymentId = order.relationships?.paymentMethod?.data?.id || 0;
-    if (
-      new Date(createdAt.slice(0, 10)) >= new Date(from) &&
-      new Date(createdAt.slice(0, 10)) <= new Date(to)
-    ) {
-      if (filteredOrders[paymentId]) {
-        filteredOrders[paymentId].amount += amount;
-        filteredOrders[paymentId].count += 1;
-      } else {
-        filteredOrders[paymentId] = { amount, count: 1 };
+export async function getDanielData(token: string, paging: number) {
+  let page = 1;
+  let finalPaymentsData: any[] = [];
+  //TODO remove hardcoded param
+  while (page <= paging) {
+    console.log(`Fetching page: ${page} of ${paging}`);
+    const data = await fetch(
+      `https://api.fu.do/v1alpha1/payments?sort=-id&page[size]=500&page[number]=${page}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       }
-    }
-  });
+    );
+    const _data = await data.json();
+    page += 1;
+    finalPaymentsData = [...finalPaymentsData, ..._data.data];
+  }
+  return finalPaymentsData;
 }
-
-export async function middleWareMireya(
-  from: string | number | Date,
-  to: string | number | Date,
-  params: any,
-  paging: number
-) {
-  const finalPaymentsData = await getDanielData(
-    process.env.MIREYA_TOKEN as string,
-    paging
-  );
-  let mireyaOrders: any = {} as any;
-  filterData(finalPaymentsData, from, to, mireyaOrders);
-  let result = {
-    from: from,
-    to: to,
-    localName: params.local as string,
-    len: Object.keys(mireyaOrders).reduce(
-      (acc, payId) => acc + mireyaOrders[payId].count,
-      0
-    ),
-    salesTotal: Object.keys(mireyaOrders)
-      .map((key) => mireyaOrders[key].amount)
-      .reduce((acc, val) => acc + val, 0),
-    cashTotal: mireyaOrders[1]?.amount,
-  };
-  return result;
-}
-
-export async function middleWareBotanico(
+export async function middleWareDanielSiria(
   from: string | number | Date,
   to: string | number | Date,
   params: Params<string>,
@@ -228,7 +177,6 @@ export async function middleWareBotanico(
   );
   let botanicofilteredOrders: any = {} as any;
   filterData(botanicoPaymentsData, from, to, botanicofilteredOrders);
-
   let botanicoresult = {
     from: from,
     to: to,
@@ -243,4 +191,59 @@ export async function middleWareBotanico(
     cashTotal: botanicofilteredOrders[1]?.amount,
   };
   return botanicoresult;
+}
+
+export async function filterData(
+  finalData: any[],
+  from: string | number | Date,
+  to: string | number | Date,
+  filteredOrders: { [x: string]: { amount: any; count: number } }
+) {
+  finalData.forEach((order) => {
+    const amount = order.attributes?.amount || 0;
+    const createdAt = order.attributes?.createdAt || "";
+    const localCreatedAt = new Date(
+      new Date(createdAt).setHours(new Date(createdAt).getHours() - 3)
+    );
+    const paymentId = order.relationships?.paymentMethod?.data?.id || 0;
+    const adaptedTo = new Date(
+      new Date(to).setDate(new Date(to).getDate() + 1)
+    );
+    if (localCreatedAt >= new Date(from) && localCreatedAt <= adaptedTo) {
+      if (filteredOrders[paymentId]) {
+        filteredOrders[paymentId].amount += amount;
+        filteredOrders[paymentId].count += 1;
+      } else {
+        filteredOrders[paymentId] = { amount, count: 1 };
+      }
+    }
+  });
+}
+
+export async function middleWareDanielLacroze(
+  from: string | number | Date,
+  to: string | number | Date,
+  params: any,
+  paging: number
+) {
+  const finalPaymentsData = await getDanielData(
+    process.env.MIREYA_TOKEN as string,
+    paging
+  );
+  let danielLacrozeOrders: any = {} as any;
+  filterData(finalPaymentsData, from, to, danielLacrozeOrders);
+  let result = {
+    from: from,
+    to: to,
+    localName: params.local as string,
+    len: Object.keys(danielLacrozeOrders).reduce(
+      (acc, payId) => acc + danielLacrozeOrders[payId].count,
+      0
+    ),
+    salesTotal: Object.keys(danielLacrozeOrders)
+      .map((key) => danielLacrozeOrders[key].amount)
+      .reduce((acc, val) => acc + val, 0),
+    cashTotal: danielLacrozeOrders[1]?.amount,
+  };
+  return result;
 }

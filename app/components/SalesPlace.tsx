@@ -24,11 +24,15 @@ export default function SalesPlace({
         <p>
           Total Orders: <b>{data?.len}</b>
         </p>
-        <p>Total Sales: {formatter.format(data?.salesTotal)}</p>
-        <p>Total Cash: {formatter.format(data?.cashTotal)}</p>
+        <p>
+          Total Sales: <b>{formatter.format(data?.salesTotal)}</b>
+        </p>
+        <p>
+          Total Cash: <b>{formatter.format(data?.cashTotal)}</b>
+        </p>
         <p>
           Total Electronics:{" "}
-          {formatter.format(data?.salesTotal - data?.cashTotal)}
+          <b>{formatter.format(data?.salesTotal - data?.cashTotal)}</b>
         </p>
         <p
           style={
