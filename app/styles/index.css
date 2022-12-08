@@ -1,38 +1,17 @@
-/* body {
-  color: hsl(0, 0%, 100%);
-  background-image: radial-gradient(
-    circle,
-    rgb(60, 114, 87) 0%,
-    rgb(44, 40, 71) 35%,
-    rgb(13, 38, 85) 100%
-  );
-} */
-
 /*
  * when the user visits this page, this style will apply, when they leave, it
  * will get unloaded, so don't worry so much about conflicting styles between
  * pages!
  */
 
-/* body {
+body {
   background-image: var(--gradient-background);
-} */
+}
 
 .container {
   min-height: inherit;
 }
-button {
-  padding: 17px 40px;
-  border-radius: 10px;
-  border: transparent;
-  font-size: 20px;
-  font-weight: 600;
-  color: rgb(13, 38, 85);
-}
-button:hover {
-  background-color: antiquewhite;
-  cursor: pointer;
-}
+
 .container,
 .content {
   display: flex;
@@ -75,10 +54,6 @@ nav ul {
 nav ul a:hover {
   text-decoration-style: wavy;
   text-decoration-thickness: 1px;
-}
-
-a:hover {
-  text-decoration: none;
 }
 
 @media print, (min-width: 640px) {

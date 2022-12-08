@@ -1,23 +1,14 @@
-import type { LinksFunction } from "@remix-run/node";
-import { Link } from "@remix-run/react";
-
+import type { LinksFunction, LoaderFunction } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
 import stylesUrl from "~/styles/index.css";
 
 export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: stylesUrl }];
 };
+export const loader: LoaderFunction = async ({ request }) => {
+  return redirect("/admin/all");
+};
 
 export default function IndexRoute() {
-  return (
-    <div className='container'>
-      <div className='content'>
-        <h1>
-          <Link to='/login'>
-            <span>H4</span>
-          </Link>
-        </h1>
-        <nav></nav>
-      </div>
-    </div>
-  );
+  return <div className='container'></div>;
 }

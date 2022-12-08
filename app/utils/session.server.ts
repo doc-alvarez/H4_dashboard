@@ -1,19 +1,23 @@
 import { db } from "./db.server";
-import { createCookieSessionStorage, redirect } from "@remix-run/node";
+import { createCookieSessionStorage, json, redirect } from "@remix-run/node";
+import md5 from "md5";
+import { Params } from "@remix-run/react";
+const axios = require("axios").default;
 
 type LoginForm = {
   username: string;
   password: string;
 };
 
+//TODO Improve this. bcrypt and hashed.
 export async function login({ username, password }: LoginForm) {
   const user_check = await db.users.findUnique({
     where: { username },
   });
-  //   if (!user_check) return null;
   const pass_check = await db.users.findUnique({
     where: { password },
   });
+  console.log(user_check, pass_check);
   if (user_check && pass_check) {
     return user_check.id;
   } else {
@@ -29,7 +33,8 @@ if (!sessionSecret) {
 const storage = createCookieSessionStorage({
   cookie: {
     name: "H4_session",
-    secure: process.env.NODE_ENV === "production",
+    // secure: process.env.NODE_ENV === "production",
+    secure: false,
     secrets: [sessionSecret],
     sameSite: "lax",
     path: "/",
@@ -39,6 +44,7 @@ const storage = createCookieSessionStorage({
 });
 
 function getUserSession(request: Request) {
+  console.log(request.headers.get("Cookie"));
   return storage.getSession(request.headers.get("Cookie"));
 }
 export async function getUserId(request: Request) {
@@ -48,15 +54,11 @@ export async function getUserId(request: Request) {
   return userId;
 }
 
-export async function requireUserId(
-  request: Request,
-  redirectTo: string = new URL(request.url).pathname
-) {
+export async function requireUserId(request: Request) {
   const session = await getUserSession(request);
-  const userId = session.get("userId");
+  const userId = await session.get("userId");
   if (!userId || typeof userId !== "string") {
-    const searchParams = new URLSearchParams([["redirectTo", redirectTo]]);
-    throw redirect(`/login?${searchParams}`);
+    throw redirect("/login");
   }
   return userId;
 }
@@ -64,21 +66,14 @@ export async function requireUserId(
 export async function createUserSession(userId: string, redirectTo: string) {
   const session = await storage.getSession();
   session.set("userId", userId);
-  return redirect(redirectTo, {
+  return redirect("/admin/all", {
     headers: {
       "Set-Cookie": await storage.commitSession(session),
     },
   });
 }
-export async function getAPIData({
-  email,
-  password,
-  url = "",
-}: {
-  email: string;
-  password: string;
-  url?: string;
-}) {
+
+export async function apiLogin(email: string, password: string) {
   const data = await fetch("https://pos.linisco.com.ar/users/sign_in", {
     method: "POST",
     headers: {
@@ -93,31 +88,158 @@ export async function getAPIData({
     }),
   });
   const { authentication_token } = await data.json();
-  const orders = await fetch("https://pos.linisco.com.ar/sale_orders", {
-    method: "GET",
+  return authentication_token;
+}
+export async function getDanielData(token: string, paging = 11) {
+  let page = 1;
+  let finalPaymentsData: any[] = [];
+  while (page < paging) {
+    console.log("while loop round", page);
+    const data = await fetch(
+      `https://api.fu.do/v1alpha1/sales?page[size]=500&page[number]=${page}&sort=-createdAt&include=payments.paymentMethod`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const _data = await data.json();
+    page += 1;
+    finalPaymentsData = [...finalPaymentsData, ..._data.included];
+  }
+  return finalPaymentsData;
+}
+
+export async function getAPIData({
+  email,
+  token,
+  from,
+  to,
+}: {
+  email: string;
+  token: string;
+  from: string;
+  to: string;
+}) {
+  const orders = await axios({
+    method: "get",
+    url: "https://pos.linisco.com.ar/sale_orders",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
       "X-User-Email": email,
-      "X-User-Token": authentication_token,
+      "X-User-Token": token,
+    },
+    data: {
+      fromDate: from,
+      toDate: to,
     },
   });
-  const _orders = await orders.json();
-  return _orders;
+  console.log("getAPIData called", orders.data.length);
+  return orders.data;
 }
 
-// const user = await db.users.findUnique({ where: { username: "tincho" } });
-// let data = {
-//   local: "Lacroze",
-//   len: _orders.length,
-//   salesTotal: _orders.reduce((acc, val) => acc + val.total, 0),
-//   cashTotal: _orders
-//     .map((order) => {
-//       if (order.paymentmethod === "cash") {
-//         return order.total;
-//       } else {
-//         return null;
-//       }
-//     })
-//     .reduce((acc, val) => (val ? acc + val : acc), 0),
-// };
+export async function getUser(request: Request) {
+  const userId = await getUserId(request);
+  if (typeof userId !== "string") {
+    return null;
+  }
+
+  try {
+    const user = await db.users.findUnique({
+      where: { id: userId },
+      select: { id: true, username: true },
+    });
+    return user;
+  } catch {
+    throw logout(request);
+  }
+}
+export async function logout(request: Request) {
+  const session = await getUserSession(request);
+  return redirect("/login", {
+    headers: {
+      "Set-Cookie": await storage.destroySession(session),
+    },
+  });
+}
+
+export async function filterData(
+  finalData: any[],
+  from: string | number | Date,
+  to: string | number | Date,
+  filteredOrders: { [x: string]: { amount: any; count: number } }
+) {
+  finalData.forEach((order) => {
+    const amount = order.attributes?.amount || 0;
+    const createdAt = order.attributes?.createdAt || "";
+    const paymentId = order.relationships?.paymentMethod?.data?.id || 0;
+    if (
+      new Date(createdAt.slice(0, 10)) >= new Date(from) &&
+      new Date(createdAt.slice(0, 10)) <= new Date(to)
+    ) {
+      if (filteredOrders[paymentId]) {
+        filteredOrders[paymentId].amount += amount;
+        filteredOrders[paymentId].count += 1;
+      } else {
+        filteredOrders[paymentId] = { amount, count: 1 };
+      }
+    }
+  });
+}
+
+export async function middleWareMireya(
+  from: string | number | Date,
+  to: string | number | Date,
+  params: any
+) {
+  const finalPaymentsData = await getDanielData(
+    process.env.MIREYA_TOKEN as string
+  );
+  console.log(finalPaymentsData);
+  let mireyaOrders: any = {} as any;
+  filterData(finalPaymentsData, from, to, mireyaOrders);
+  let result = {
+    from: from,
+    to: to,
+    localName: params.local as string,
+    len: Object.keys(mireyaOrders).reduce(
+      (acc, payId) => acc + mireyaOrders[payId].count,
+      0
+    ),
+    salesTotal: Object.keys(mireyaOrders)
+      .map((key) => mireyaOrders[key].amount)
+      .reduce((acc, val) => acc + val, 0),
+    cashTotal: mireyaOrders[1]?.amount,
+  };
+  return result;
+}
+
+export async function middleWareBotanico(
+  from: string | number | Date,
+  to: string | number | Date,
+  params: Params<string>
+) {
+  const botanicoPaymentsData = await getDanielData(
+    process.env.BOTANICO_TOKEN as string
+  );
+  let botanicofilteredOrders: any = {} as any;
+  filterData(botanicoPaymentsData, from, to, botanicofilteredOrders);
+
+  let botanicoresult = {
+    from: from,
+    to: to,
+    localName: params.local as string,
+    len: Object.keys(botanicofilteredOrders).reduce(
+      (acc, payId) => acc + botanicofilteredOrders[payId].count,
+      0
+    ),
+    salesTotal: Object.keys(botanicofilteredOrders)
+      .map((key) => botanicofilteredOrders[key].amount)
+      .reduce((acc, val) => acc + val, 0),
+    cashTotal: botanicofilteredOrders[1]?.amount,
+  };
+  return botanicoresult;
+}

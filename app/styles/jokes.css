@@ -6,8 +6,8 @@
 
 .jokes-header {
   padding-top: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid white;
 }
 
 .jokes-header .container {
@@ -29,10 +29,6 @@
   text-decoration: none;
 }
 
-.jokes-header .logo-medium {
-  display: none;
-}
-
 .jokes-header a:hover {
   text-decoration-style: wavy;
   text-decoration-thickness: 1px;
@@ -46,18 +42,17 @@
 }
 
 .jokes-main {
-  padding-top: 2rem;
+  padding-top: 1rem;
   padding-bottom: 2rem;
   flex: 1 1 100%;
 }
 
 .jokes-main .container {
-  display: flex;
   gap: 1rem;
 }
 
 .jokes-list {
-  max-width: 12rem;
+  max-width: 100%;
 }
 
 .jokes-outlet {
@@ -71,16 +66,12 @@
 }
 
 @media print, (min-width: 640px) {
-  .jokes-header .logo {
-    display: none;
-  }
-
   .jokes-header .logo-medium {
     display: block;
   }
 
   .jokes-main {
-    padding-top: 3rem;
+    padding-top: 1rem;
     padding-bottom: 3rem;
   }
 }
