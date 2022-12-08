@@ -1,5 +1,11 @@
-import type { ActionFunction, LinksFunction } from "@remix-run/node";
-import { useSearchParams, Form, useTransition } from "@remix-run/react";
+import { ActionFunction, json, LinksFunction } from "@remix-run/node";
+import {
+  useSearchParams,
+  Form,
+  useTransition,
+  useActionData,
+  Link,
+} from "@remix-run/react";
 import { login, createUserSession } from "~/utils/session.server";
 import stylesUrl from "../styles/login.css";
 import { redirect } from "@remix-run/node";
@@ -14,23 +20,20 @@ export const action: ActionFunction = async ({ request }) => {
   const password = form.get("password") as string;
   let logged_user = await login({ username, password });
   if (logged_user) return createUserSession(logged_user, "/admin/all");
-  return redirect("/login");
+  return json("⛔ Authentication Failed ⛔ ", {
+    status: 401,
+  });
 };
 
 export default function Login() {
-  const [searchParams] = useSearchParams();
+  let loginResult = useActionData();
+  console.log(loginResult);
   const transition = useTransition();
   return (
     <div className='container'>
       <div style={{ marginTop: "30%" }} className='content' data-light=''>
         <h1>H4</h1>
         <Form id='login' method='post'>
-          <input
-            type='hidden'
-            name='redirectTo'
-            value={searchParams.get("redirectTo") ?? undefined}
-          />
-
           <div>
             <label htmlFor='username-input'>Username</label>
             <input type='text' id='username-input' name='username' />
@@ -39,13 +42,20 @@ export default function Login() {
             <label htmlFor='password-input'>Password</label>
             <input id='password-input' name='password' type='password' />
           </div>
-          <button
-            disabled={transition.state !== "idle"}
-            type='submit'
-            className='button'
-          >
-            {transition.state !== "idle" ? "Loading All Stores..." : "Submit"}
-          </button>
+          {loginResult ? (
+            <Link to='/login'>
+              <span style={{ color: "red" }}>{loginResult}</span> -{" "}
+              <b>Try Again</b>
+            </Link>
+          ) : (
+            <button
+              disabled={transition.state !== "idle"}
+              type='submit'
+              className='button'
+            >
+              {transition.state !== "idle" ? "Loading All Stores..." : "Submit"}
+            </button>
+          )}
         </Form>
       </div>
     </div>

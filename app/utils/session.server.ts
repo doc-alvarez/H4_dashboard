@@ -17,7 +17,6 @@ export async function login({ username, password }: LoginForm) {
   const pass_check = await db.users.findUnique({
     where: { password },
   });
-  console.log(user_check, pass_check);
   if (user_check && pass_check) {
     return user_check.id;
   } else {
@@ -44,7 +43,6 @@ const storage = createCookieSessionStorage({
 });
 
 function getUserSession(request: Request) {
-  console.log(request.headers.get("Cookie"));
   return storage.getSession(request.headers.get("Cookie"));
 }
 export async function getUserId(request: Request) {
@@ -90,7 +88,7 @@ export async function apiLogin(email: string, password: string) {
   const { authentication_token } = await data.json();
   return authentication_token;
 }
-export async function getDanielData(token: string, paging = 11) {
+export async function getDanielData(token: string, paging = 2) {
   let page = 1;
   let finalPaymentsData: any[] = [];
   while (page < paging) {
@@ -198,7 +196,6 @@ export async function middleWareMireya(
   const finalPaymentsData = await getDanielData(
     process.env.MIREYA_TOKEN as string
   );
-  console.log(finalPaymentsData);
   let mireyaOrders: any = {} as any;
   filterData(finalPaymentsData, from, to, mireyaOrders);
   let result = {

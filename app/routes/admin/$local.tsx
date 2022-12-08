@@ -55,7 +55,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       console.log("MIREYA");
       return json(mireyaresult, {
         headers: {
-          "cache-Control": "max-age=240, must-revalidate",
+          "cache-Control": "max-age=600, must-revalidate",
           eTag: md5(JSON.stringify(mireyaresult)),
         },
       });
@@ -67,7 +67,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       console.log("BOTANICO");
       return json(botanicoresult, {
         headers: {
-          "cache-Control": "max-age=240, must-revalidate",
+          "cache-Control": "max-age=600, must-revalidate",
           eTag: md5(JSON.stringify(botanicoresult)),
         },
       });
@@ -107,7 +107,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       console.log("SIRIA");
       return json(siriaresult, {
         headers: {
-          "cache-Control": "max-age=240, must-revalidate",
+          "cache-Control": "max-age=600, must-revalidate",
           eTag: md5(JSON.stringify(siriaresult)),
         },
       });
@@ -147,7 +147,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       console.log("LACROZE");
       return json(lacrozeresult, {
         headers: {
-          "cache-Control": "max-age=240, must-revalidate",
+          "cache-Control": "max-age=600, must-revalidate",
           eTag: md5(JSON.stringify(lacrozeresult)),
         },
       });
@@ -217,7 +217,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       console.log("ALL STORES");
       return json(integratedResult, {
         headers: {
-          "cache-Control": "max-age=240, must-revalidate",
+          "cache-Control": "max-age=600, must-revalidate",
           eTag: md5(JSON.stringify(result)),
         },
       });

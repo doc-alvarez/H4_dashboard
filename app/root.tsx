@@ -5,12 +5,16 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useFetcher,
   useLocation,
+  useSearchParams,
   useTransition,
 } from "@remix-run/react";
 import globalStylesUrl from "./styles/global.css";
 import globalMediumStylesUrl from "./styles/global-medium.css";
 import globalLargeStylesUrl from "./styles/global-large.css";
+import dark from "~/styles/dark.css";
+import { ThemeProvider, useTheme } from "~/utils/theme-provider";
 
 export const links: LinksFunction = () => {
   return [
@@ -30,8 +34,10 @@ export const links: LinksFunction = () => {
     },
   ];
 };
-export default function App() {
+export function App() {
   let transition = useTransition();
+  let [theme] = useTheme();
+  console.log(theme);
   return (
     <html lang='en'>
       <head>
@@ -40,7 +46,10 @@ export default function App() {
         <title>Dashboard</title>
         <Links />
       </head>
-      <body style={transition.state !== "idle" ? { cursor: "wait" } : {}}>
+      <body
+        id={theme === "dark" ? "darkMode" : "lightMode"}
+        style={transition.state !== "idle" ? { cursor: "wait" } : {}}
+      >
         <Outlet />
         <ScrollRestoration />
         <Scripts />
@@ -56,10 +65,17 @@ export default function App() {
           }}
         >
           <a href='mailto:doctordalvarez@protonmail.com'>
-            Developed by Catalyst ™️ 🚀
+            Developed by Catalyst ™️ 🚀 v0.1.0
           </a>
         </p>
       </body>
     </html>
+  );
+}
+export default function AppProvider() {
+  return (
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
   );
 }
