@@ -1,18 +1,9 @@
-import {
-  Link,
-  NavLink,
-  Outlet,
-  useSearchParams,
-  useTransition,
-} from "@remix-run/react";
+import { Link, NavLink, Outlet } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import stylesUrl from "~/styles/jokes.css";
 import { requireUserId } from "~/utils/session.server";
-import logo from "../../app/sand.jpg";
 //Types
 import type { LinksFunction, LoaderFunction } from "@remix-run/node";
-import React from "react";
-import { useTheme } from "~/utils/theme-provider";
 //Links
 export const links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: stylesUrl }];
@@ -24,7 +15,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function AdminRoute() {
-  let [theme, setTheme] = useTheme();
   return (
     <div className='jokes-layout'>
       <header className='jokes-header'>
@@ -42,13 +32,6 @@ export default function AdminRoute() {
             />
           </div>
           <div>
-            <div id='theme'>
-              {theme === "dark" ? (
-                <div onClick={() => setTheme("light")}>🌙</div>
-              ) : (
-                <div onClick={() => setTheme("dark")}>☀️</div>
-              )}
-            </div>
             <h3>Welcome Admin</h3>
             <Link to='/logout'>
               <h3>Logout</h3>

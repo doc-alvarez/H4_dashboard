@@ -5,16 +5,11 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useFetcher,
-  useLocation,
-  useSearchParams,
   useTransition,
 } from "@remix-run/react";
 import globalStylesUrl from "./styles/global.css";
 import globalMediumStylesUrl from "./styles/global-medium.css";
 import globalLargeStylesUrl from "./styles/global-large.css";
-import dark from "~/styles/dark.css";
-import { ThemeProvider, useTheme } from "~/utils/theme-provider";
 
 export const links: LinksFunction = () => {
   return [
@@ -34,10 +29,8 @@ export const links: LinksFunction = () => {
     },
   ];
 };
-export function App() {
+export default function App() {
   let transition = useTransition();
-  let [theme] = useTheme();
-  console.log(theme);
   return (
     <html lang='en'>
       <head>
@@ -46,10 +39,7 @@ export function App() {
         <title>Dashboard</title>
         <Links />
       </head>
-      <body
-        id={theme === "dark" ? "darkMode" : "lightMode"}
-        style={transition.state !== "idle" ? { cursor: "wait" } : {}}
-      >
+      <body style={transition.state !== "idle" ? { cursor: "wait" } : {}}>
         <Outlet />
         <ScrollRestoration />
         <Scripts />
@@ -70,12 +60,5 @@ export function App() {
         </p>
       </body>
     </html>
-  );
-}
-export default function AppProvider() {
-  return (
-    <ThemeProvider>
-      <App />
-    </ThemeProvider>
   );
 }

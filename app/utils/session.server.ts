@@ -88,11 +88,11 @@ export async function apiLogin(email: string, password: string) {
   const { authentication_token } = await data.json();
   return authentication_token;
 }
-export async function getDanielData(token: string, paging = 2) {
+export async function getDanielData(token: string, paging: number) {
   let page = 1;
   let finalPaymentsData: any[] = [];
-  while (page < paging) {
-    console.log("while loop round", page);
+  while (page <= paging) {
+    console.log(`Fetching page: ${page} of ${paging}`);
     const data = await fetch(
       `https://api.fu.do/v1alpha1/sales?page[size]=500&page[number]=${page}&sort=-createdAt&include=payments.paymentMethod`,
       {
@@ -191,10 +191,12 @@ export async function filterData(
 export async function middleWareMireya(
   from: string | number | Date,
   to: string | number | Date,
-  params: any
+  params: any,
+  paging: number
 ) {
   const finalPaymentsData = await getDanielData(
-    process.env.MIREYA_TOKEN as string
+    process.env.MIREYA_TOKEN as string,
+    paging
   );
   let mireyaOrders: any = {} as any;
   filterData(finalPaymentsData, from, to, mireyaOrders);
@@ -217,10 +219,12 @@ export async function middleWareMireya(
 export async function middleWareBotanico(
   from: string | number | Date,
   to: string | number | Date,
-  params: Params<string>
+  params: Params<string>,
+  paging: number
 ) {
   const botanicoPaymentsData = await getDanielData(
-    process.env.BOTANICO_TOKEN as string
+    process.env.BOTANICO_TOKEN as string,
+    paging
   );
   let botanicofilteredOrders: any = {} as any;
   filterData(botanicoPaymentsData, from, to, botanicofilteredOrders);

@@ -41,7 +41,9 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       .getDate()
       .toString()
       .padStart(2, "0")}`;
-
+  let historic = url.searchParams.get("historic");
+  let paging = historic ? 12 : 2;
+  console.log(historic, paging);
   let data;
   let siria_token;
   let lac_token;
@@ -51,7 +53,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     //MIREYA
     //***************************************** */
     case "mireya":
-      let mireyaresult = await middleWareMireya(from, to, params);
+      let mireyaresult = await middleWareMireya(from, to, params, paging);
       console.log("MIREYA");
       return json(mireyaresult, {
         headers: {
@@ -63,7 +65,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     //BOTANICO
     //***************************************** */
     case "botanico":
-      let botanicoresult = await middleWareBotanico(from, to, params);
+      let botanicoresult = await middleWareBotanico(from, to, params, paging);
       console.log("BOTANICO");
       return json(botanicoresult, {
         headers: {
@@ -183,8 +185,8 @@ export const loader: LoaderFunction = async ({ params, request }) => {
       ).flat();
       const data2 = (
         await Promise.all([
-          middleWareBotanico(from, to, params),
-          middleWareMireya(from, to, params),
+          middleWareBotanico(from, to, params, paging),
+          middleWareMireya(from, to, params, paging),
         ])
       ).flat();
       let result: Locale_Data = {
@@ -288,6 +290,10 @@ export default function LocalSpecific() {
             </span>
           )}
         </button>
+        <div style={{ marginTop: "20px" }}>
+          <label htmlFor='checkbox'>Historico:</label>
+          <input type='checkbox' id='checkbox' name='historic' />
+        </div>
       </Form>
       <SalesPlace
         isLoading={transition.state !== "idle"}
