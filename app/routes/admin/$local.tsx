@@ -34,7 +34,6 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   console.log(from, to);
   let historic = url.searchParams.get("historic");
   let paging = Math.ceil(Number(historic) / 500) || 2;
-  console.log(paging);
   let data;
   let siria_token;
   let lac_token;

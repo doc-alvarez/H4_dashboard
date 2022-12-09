@@ -1,0 +1,28 @@
+# fly.toml file generated for h4-dashboard on 2022-12-08T14:31:02-08:00
+
+app = "h4-dashboard"
+
+[env]
+  DATABASE_URL = "file:/data/sqlite.db"
+  PORT = "8080"
+
+[experimental]
+  cmd = "start_with_migrations.sh"
+  entrypoint = "sh"
+
+[[mounts]]
+  destination = "/data"
+  source = "data"
+
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"
+
+  [[services.ports]]
+    force_https = true
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = "443"

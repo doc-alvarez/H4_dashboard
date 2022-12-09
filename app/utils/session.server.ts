@@ -1,7 +1,6 @@
 import { db } from "./db.server";
-import { createCookieSessionStorage, json, redirect } from "@remix-run/node";
-import md5 from "md5";
-import { Params } from "@remix-run/react";
+import { createCookieSessionStorage, redirect } from "@remix-run/node";
+import type { Params } from "@remix-run/react";
 const axios = require("axios").default;
 
 type LoginForm = {
@@ -32,8 +31,8 @@ if (!sessionSecret) {
 const storage = createCookieSessionStorage({
   cookie: {
     name: "H4_session",
-    // secure: process.env.NODE_ENV === "production",
-    secure: false,
+
+    secure: process.env.NODE_ENV === "production",
     secrets: [sessionSecret],
     sameSite: "lax",
     path: "/",
@@ -110,8 +109,8 @@ export async function getAPIData({
       "X-User-Token": token,
     },
     data: {
-      fromDate: from,
-      toDate: to,
+      fromDate: new Date(from).toISOString().slice(0, 10),
+      toDate: new Date(to).toISOString().slice(0, 10),
     },
   });
   console.log("getAPIData called", orders.data.length);
