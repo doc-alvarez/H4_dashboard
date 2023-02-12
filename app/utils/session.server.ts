@@ -1,31 +1,31 @@
-import { db } from "./db.server";
-import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import type { Params } from "@remix-run/react";
-const axios = require("axios").default;
+import { db } from "./db.server"
+import { createCookieSessionStorage, redirect } from "@remix-run/node"
+import type { Params } from "@remix-run/react"
+const axios = require("axios").default
 
 type LoginForm = {
-  username: string;
-  password: string;
-};
+  username: string
+  password: string
+}
 
 //TODO Improve this. bcrypt and hashed.
 export async function login({ username, password }: LoginForm) {
   const user_check = await db.users.findUnique({
     where: { username },
-  });
+  })
   const pass_check = await db.users.findUnique({
     where: { password },
-  });
+  })
   if (user_check && pass_check) {
-    return user_check.id;
+    return user_check.id
   } else {
-    console.log("login failed");
+    console.log("login failed")
   }
 }
 
-const sessionSecret = process.env.SESSION_SECRET;
+const sessionSecret = process.env.SESSION_SECRET
 if (!sessionSecret) {
-  throw new Error("SESSION_SECRET must be set");
+  throw new Error("SESSION_SECRET must be set")
 }
 
 const storage = createCookieSessionStorage({
@@ -39,35 +39,35 @@ const storage = createCookieSessionStorage({
     httpOnly: true,
     maxAge: 60 * 60 * 24 * 30,
   },
-});
+})
 
 function getUserSession(request: Request) {
-  return storage.getSession(request.headers.get("Cookie"));
+  return storage.getSession(request.headers.get("Cookie"))
 }
 export async function getUserId(request: Request) {
-  const session = await getUserSession(request);
-  const userId = session.get("userId");
-  if (!userId || typeof userId !== "string") return null;
-  return userId;
+  const session = await getUserSession(request)
+  const userId = session.get("userId")
+  if (!userId || typeof userId !== "string") return null
+  return userId
 }
 
 export async function requireUserId(request: Request) {
-  const session = await getUserSession(request);
-  const userId = await session.get("userId");
+  const session = await getUserSession(request)
+  const userId = await session.get("userId")
   if (!userId || typeof userId !== "string") {
-    throw redirect("/login");
+    throw redirect("/login")
   }
-  return userId;
+  return userId
 }
 
 export async function createUserSession(userId: string, redirectTo: string) {
-  const session = await storage.getSession();
-  session.set("userId", userId);
+  const session = await storage.getSession()
+  session.set("userId", userId)
   return redirect("/admin/all-stores", {
     headers: {
       "Set-Cookie": await storage.commitSession(session),
     },
-  });
+  })
 }
 
 export async function apiLogin(email: string, password: string) {
@@ -83,9 +83,9 @@ export async function apiLogin(email: string, password: string) {
         password: password,
       },
     }),
-  });
-  const { authentication_token } = await data.json();
-  return authentication_token;
+  })
+  const { authentication_token } = await data.json()
+  return authentication_token
 }
 
 export async function getAPIData({
@@ -94,10 +94,10 @@ export async function getAPIData({
   from,
   to,
 }: {
-  email: string;
-  token: string;
-  from: string;
-  to: string;
+  email: string
+  token: string
+  from: string
+  to: string
 }) {
   const orders = await axios({
     method: "get",
@@ -112,42 +112,42 @@ export async function getAPIData({
       fromDate: new Date(from).toISOString().slice(0, 10),
       toDate: new Date(to).toISOString().slice(0, 10),
     },
-  });
-  console.log("getAPIData called", orders.data.length);
-  return orders.data;
+  })
+  console.log("getAPIData called", orders.data.length)
+  return orders.data
 }
 
 export async function getUser(request: Request) {
-  const userId = await getUserId(request);
+  const userId = await getUserId(request)
   if (typeof userId !== "string") {
-    return null;
+    return null
   }
 
   try {
     const user = await db.users.findUnique({
       where: { id: userId },
       select: { id: true, username: true },
-    });
-    return user;
+    })
+    return user
   } catch {
-    throw logout(request);
+    throw logout(request)
   }
 }
 export async function logout(request: Request) {
-  const session = await getUserSession(request);
+  const session = await getUserSession(request)
   return redirect("/login", {
     headers: {
       "Set-Cookie": await storage.destroySession(session),
     },
-  });
+  })
 }
 
 export async function getDanielData(token: string, paging: number) {
-  let page = 1;
-  let finalPaymentsData: any[] = [];
+  let page = 1
+  let finalPaymentsData: any[] = []
   //TODO remove hardcoded param
   while (page <= paging) {
-    console.log(`Fetching page: ${page} of ${paging}`);
+    console.log(`Fetching page: ${page} of ${paging}`)
     const data = await fetch(
       `https://api.fu.do/v1alpha1/payments?sort=-id&page[size]=500&page[number]=${page}`,
       {
@@ -157,12 +157,12 @@ export async function getDanielData(token: string, paging: number) {
           Authorization: `Bearer ${token}`,
         },
       }
-    );
-    const _data = await data.json();
-    page += 1;
-    finalPaymentsData = [...finalPaymentsData, ..._data.data];
+    )
+    const _data = await data.json()
+    page += 1
+    finalPaymentsData = [...finalPaymentsData, ..._data.data]
   }
-  return finalPaymentsData;
+  return finalPaymentsData
 }
 export async function middleWareDanielSiria(
   from: string | number | Date,
@@ -173,9 +173,9 @@ export async function middleWareDanielSiria(
   const botanicoPaymentsData = await getDanielData(
     process.env.BOTANICO_TOKEN as string,
     paging
-  );
-  let botanicofilteredOrders: any = {} as any;
-  filterData(botanicoPaymentsData, from, to, botanicofilteredOrders);
+  )
+  let botanicofilteredOrders: any = {} as any
+  filterData(botanicoPaymentsData, from, to, botanicofilteredOrders)
   let botanicoresult = {
     from: from,
     to: to,
@@ -188,8 +188,8 @@ export async function middleWareDanielSiria(
       .map((key) => botanicofilteredOrders[key].amount)
       .reduce((acc, val) => acc + val, 0),
     cashTotal: botanicofilteredOrders[1]?.amount,
-  };
-  return botanicoresult;
+  }
+  return botanicoresult
 }
 
 export async function filterData(
@@ -199,24 +199,22 @@ export async function filterData(
   filteredOrders: { [x: string]: { amount: any; count: number } }
 ) {
   finalData.forEach((order) => {
-    const amount = order.attributes?.amount || 0;
-    const createdAt = order.attributes?.createdAt || "";
+    const amount = order.attributes?.amount || 0
+    const createdAt = order.attributes?.createdAt || ""
     const localCreatedAt = new Date(
       new Date(createdAt).setHours(new Date(createdAt).getHours() - 3)
-    );
-    const paymentId = order.relationships?.paymentMethod?.data?.id || 0;
-    const adaptedTo = new Date(
-      new Date(to).setDate(new Date(to).getDate() + 1)
-    );
+    )
+    const paymentId = order.relationships?.paymentMethod?.data?.id || 0
+    const adaptedTo = new Date(new Date(to).setDate(new Date(to).getDate() + 1))
     if (localCreatedAt >= new Date(from) && localCreatedAt <= adaptedTo) {
       if (filteredOrders[paymentId]) {
-        filteredOrders[paymentId].amount += amount;
-        filteredOrders[paymentId].count += 1;
+        filteredOrders[paymentId].amount += amount
+        filteredOrders[paymentId].count += 1
       } else {
-        filteredOrders[paymentId] = { amount, count: 1 };
+        filteredOrders[paymentId] = { amount, count: 1 }
       }
     }
-  });
+  })
 }
 
 export async function middleWareDanielLacroze(
@@ -228,9 +226,9 @@ export async function middleWareDanielLacroze(
   const finalPaymentsData = await getDanielData(
     process.env.MIREYA_TOKEN as string,
     paging
-  );
-  let danielLacrozeOrders: any = {} as any;
-  filterData(finalPaymentsData, from, to, danielLacrozeOrders);
+  )
+  let danielLacrozeOrders: any = {} as any
+  filterData(finalPaymentsData, from, to, danielLacrozeOrders)
   let result = {
     from: from,
     to: to,
@@ -243,6 +241,6 @@ export async function middleWareDanielLacroze(
       .map((key) => danielLacrozeOrders[key].amount)
       .reduce((acc, val) => acc + val, 0),
     cashTotal: danielLacrozeOrders[1]?.amount,
-  };
-  return result;
+  }
+  return result
 }
