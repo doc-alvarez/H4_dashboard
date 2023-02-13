@@ -1,6 +1,6 @@
-# fly.toml file generated for h4-dashboard on 2022-12-08T14:31:02-08:00
+# fly.toml file generated for hansen-dash on 2023-02-12T17:34:02-08:00
 
-app = "h4-dashboard"
+app = "hansen-dash"
 
 [env]
   DATABASE_URL = "file:/data/sqlite.db"

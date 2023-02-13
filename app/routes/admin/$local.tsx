@@ -1,11 +1,6 @@
 import { json, redirect } from "@remix-run/node"
 import type { LoaderFunction } from "@remix-run/node"
-import {
-  apiLogin,
-  getAPIData,
-  middleWareDanielLacroze,
-  middleWareDanielSiria,
-} from "~/utils/session.server"
+import { apiLogin, getAPIData } from "~/utils/session.server"
 import SalesPlace from "~/components/SalesPlace"
 import {
   Form,
@@ -31,9 +26,6 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   const url = new URL(request.url)
   const from = url.searchParams.get("from") || new Date().toLocaleDateString()
   const to = url.searchParams.get("to") || new Date().toLocaleDateString()
-  console.log(from, to)
-  let historic = url.searchParams.get("historic")
-  let paging = Math.ceil(Number(historic) / 500) || 2
   let data
   let siria_token
   let lac_token

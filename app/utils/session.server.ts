@@ -84,6 +84,7 @@ export async function apiLogin(email: string, password: string) {
       },
     }),
   })
+  // console.log(await data.json())
   const { authentication_token } = await data.json()
   return authentication_token
 }
